@@ -99,8 +99,6 @@ namespace ConsoleApp1
 			var totalItemCount = listofItems.Count;
 			int appropriateBatchSize = totalItemCount / maximumBatchSize > maximumBatchCount ? (totalItemCount / maximumBatchSize) + (totalItemCount % maximumBatchSize == 0 ? 0 : 1) : maximumBatchSize;
 
-			
-
 			do
 			{
 				foreach (var item in Batch(listofItems, iteration, appropriateBatchSize))
