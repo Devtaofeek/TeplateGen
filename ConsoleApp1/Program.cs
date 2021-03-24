@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text.RegularExpressions;
@@ -20,14 +21,6 @@ namespace ConsoleApp1
 
 		static void Main(string[] args)
 		{
-			var product = new Product
-			{
-				Currency = "USD",
-				Name = "Headphone",
-				Price = 50,
-				ImageUrl = "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=1280"
-			};
-
 			var template = new Template
 			{
 				ImageElements = new List<ImageElement>()
@@ -85,22 +78,53 @@ namespace ConsoleApp1
 				Width = 700
 			};
 
-			GenerateTemplate(template, product);
+			var product = new Product
+			{
+				Currency = "USD",
+				Name = "Headphone",
+				Price = 50,
+				ImageUrl = "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=1280"
+			};
+			var products = new List<Product>();
+			for (int i = 0; i < 150; i++)
+			{
+				products.Add(product);
+			}
+
+			var productsBatches = // create batches of 10 -> List<List<Product>>()
+			/*
+			 * min batch size = 5, maximum batch number = 10
+			 * 
+			 * 4   => 1 batch of 4
+			 * 5   => 1 batch of 5
+			 * 7   => 2 batches  5, 2 elements
+			 * 11  => 3 batches  5, 5, 1 elements
+			 * 50  => 10 batches 5, ...5 elements
+			 * 51  => 10 batches 6, 5..5 elements
+			 * 150 => 100 batches 15, 15...15 elements
+			 */
+
+			Parallel.ForEach(productsBatches in productsBatches){
+				GenerateTemplate(template, productBatch);
+			}
 		}
 
-		public static async Task GenerateTemplate(Template template, Product product)
+		public static async Task GenerateTemplate(Template template, List<Product> productBatch)
 		{
 			System.IO.Directory.CreateDirectory("output");
 
-			using (Image canvas = new Image<Rgba32>(template.Width, template.Height))
+			foreach (var product in productBatch)
 			{
-				LayerProductImage(product.ImageUrl, canvas, template);
+				using (Image canvas = new Image<Rgba32>(template.Width, template.Height))
+				{
+					LayerProductImage(product.ImageUrl, canvas, template);
 
-				await LayerImages(canvas, template);
+					await LayerImages(canvas, template);
 
-				LayerTexts(template, product, canvas);
+					LayerTexts(template, product, canvas);
 
-				canvas.Save("output/wordart.png");
+					canvas.Save("output/wordart.png");
+				}
 			}
 		}
 
@@ -172,7 +196,7 @@ namespace ConsoleApp1
 			// TODO: handle custom fonts from user
 			if (item.IsCustomFont)
 			{
-				// get the font from the DB, and apply it and return
+				// get the font from the DB, and apply it and return (not going to do this now)
 			}
 
 			return SystemFonts.CreateFont(item.Font, item.FontSize, fontStyle);
