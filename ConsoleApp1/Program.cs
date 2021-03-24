@@ -156,7 +156,7 @@ namespace ConsoleApp1
                             }
                         };
                         textbg.Mutate(a=>a.Fill(Color.Parse(item.BackgroundColor))
-                            .DrawText(textGraphicsOptions,text,textFont,Color.FromRgb(),new PointF(0,0) ));
+                            .DrawText(textGraphicsOptions,text,textFont,Color.FromRgb(255,0,255),new PointF(0,0) ));
                         canvas.Mutate(ctx=>ctx.DrawImage(textbg, new Point(item.X,item.Y), (float)item.Opacity));
                     }
                 }
