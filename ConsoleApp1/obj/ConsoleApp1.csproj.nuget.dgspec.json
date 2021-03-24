@@ -1,27 +1,30 @@
 {
   "format": 1,
   "restore": {
-    "B:\\Users\\razva\\source\\repos\\Filed\\TeplateGen\\ConsoleApp1\\ConsoleApp1.csproj": {}
+    "C:\\Users\\user\\Source\\Repos\\TeplateGen\\ConsoleApp1\\ConsoleApp1.csproj": {}
   },
   "projects": {
-    "B:\\Users\\razva\\source\\repos\\Filed\\TeplateGen\\ConsoleApp1\\ConsoleApp1.csproj": {
+    "C:\\Users\\user\\Source\\Repos\\TeplateGen\\ConsoleApp1\\ConsoleApp1.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "B:\\Users\\razva\\source\\repos\\Filed\\TeplateGen\\ConsoleApp1\\ConsoleApp1.csproj",
+        "projectUniqueName": "C:\\Users\\user\\Source\\Repos\\TeplateGen\\ConsoleApp1\\ConsoleApp1.csproj",
         "projectName": "ConsoleApp1",
-        "projectPath": "B:\\Users\\razva\\source\\repos\\Filed\\TeplateGen\\ConsoleApp1\\ConsoleApp1.csproj",
-        "packagesPath": "B:\\Users\\razva\\.nuget\\packages\\",
-        "outputPath": "B:\\Users\\razva\\source\\repos\\Filed\\TeplateGen\\ConsoleApp1\\obj\\",
+        "projectPath": "C:\\Users\\user\\Source\\Repos\\TeplateGen\\ConsoleApp1\\ConsoleApp1.csproj",
+        "packagesPath": "C:\\Users\\user\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\user\\Source\\Repos\\TeplateGen\\ConsoleApp1\\obj\\",
         "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
+        ],
         "configFilePaths": [
-          "B:\\Users\\razva\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "B:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "C:\\Users\\user\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
           "net5.0"
         ],
         "sources": {
-          "B:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -72,7 +75,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "B:\\Program Files\\dotnet\\sdk\\5.0.101\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.201\\RuntimeIdentifierGraph.json"
         }
       }
     }

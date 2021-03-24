@@ -1,15 +1,15 @@
-﻿using System.Collections.Generic;
-using System.Net;
-using System.Net.Http;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 using SixLabors.Fonts;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace ConsoleApp1
 {
@@ -20,6 +20,7 @@ namespace ConsoleApp1
 
 		static void Main(string[] args)
 		{
+			TestBatchingAlgorithm();
 			var product = new Product
 			{
 				Currency = "USD",
@@ -86,6 +87,45 @@ namespace ConsoleApp1
 			};
 
 			GenerateTemplate(template, product);
+		}
+
+		private static void TestBatchingAlgorithm()
+		{
+			var maximumBatchCount = 10;
+			var maximumBatchSize = 5;
+			var listofItems = GenerateListOfItems();
+
+			var iteration = 0;
+			var totalItemCount = listofItems.Count;
+			int appropriateBatchSize = totalItemCount / maximumBatchSize > maximumBatchCount ? (totalItemCount / maximumBatchSize) + (totalItemCount % maximumBatchSize == 0 ? 0 : 1) : maximumBatchSize;
+
+			
+
+			do
+			{
+				foreach (var item in Batch(listofItems, iteration, appropriateBatchSize))
+				{
+					Console.WriteLine($" item is added to batch { iteration + 1} ");
+				}
+
+				iteration++;
+			} while (totalItemCount > (appropriateBatchSize * iteration));
+		}
+
+		private static IEnumerable<int> Batch(List<int> listofItems, int iteration, int appropriateBatchSize)
+		{
+			return listofItems.Skip(iteration*appropriateBatchSize).Take(appropriateBatchSize);
+		}
+
+		private static List<int> GenerateListOfItems()
+		{
+			var listofItems = new List<int>();
+			for (int i = 0; i < 10; i++)
+			{
+				listofItems.Add(i);
+			}
+
+			return listofItems;
 		}
 
 		public static async Task GenerateTemplate(Template template, Product product)
