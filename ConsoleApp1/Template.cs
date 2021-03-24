@@ -2,20 +2,16 @@
 
 namespace ConsoleApp1
 {
-    public class Template
-    {
-        
-        public List<TextElement> TextElements { get; set; } = new List<TextElement>();
+	public class Template
+	{
+		public List<TextElement> TextElements { get; set; } = new List<TextElement>();
 
-        public List<ImageElement> ImageElements { get; set; } = new List<ImageElement>();
+		public List<ImageElement> ImageElements { get; set; } = new List<ImageElement>();
 
-        public List<ShapeElement> ShapeElements { get; set; } = new List<ShapeElement>();
-        
-        public int Width { get; set; }
+		public List<ShapeElement> ShapeElements { get; set; } = new List<ShapeElement>();
 
-        public int Height { get; set; }
-    }
+		public int Width { get; set; }
 
-    
-    
+		public int Height { get; set; }
+	}
 }
