@@ -7,8 +7,8 @@ using SixLabors.ImageSharp.Processing;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -17,83 +17,90 @@ namespace ConsoleApp1
 {
 	static class Program
 	{
+		private static string defaultFont = "Algerian";
 		static async Task Main(string[] args)
 		{
-			var product = new Product
-			{
-				Currency = "USD",
-				Name = "Headphone",
-				Price = 50,
-				ImageUrl = "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=1280"
-			};
-
-			var products = GenerateListOfItems(150);
+			var products = GenerateListOfItems(100);
 			var template = new Template
 			{
 				ImageElements = new List<ImageElement>()
-			{
-				 new ImageElement
-				 {
-					 Y = 0,
-					 X = 0,
-					 Height = 300,
-					 Width = 300,
-					 Opacity = 0.75M,
-					 ImageUrl = "https://thumbs.dreamstime.com/b/discount-stamp-vector-clip-art-33305813.jpg" // change this to a PNG
-				 }
-			},
-				TextElements = new List<TextElement>
-			{
-				new TextElement
 				{
-					Height = 250,
-					Width = 300,
-					FontSize = 25,
-					FontWeight = 3,
-					Z_Index = 1,
-					IsItalic = false,
-					isBold = true,
-					Opacity = 1,
-					X = 150,
-					Y = 50,
-					ColorRGB = new List<byte>{255, 0, 0 },
-					Font = "Arial",
-					IsCustomFont = false,
-					Text = @"{Name} is sold at {Price}{Currency}. IT has been the industry's standard dummy text ever since the 1500s,when an unknown printer took a of type and scrambled it to make a type specimen book"
+					new ImageElement
+					{
+						Y = 0,
+						X = 0,
+						Z_Index = 30,
+						Height = 200,
+						Width = 200,
+						Opacity = 0.75M,
+						ImageUrl = @"https://wiki.b-zone.ro/images/1/16/Discount_logo.png"
+					}
 				},
-				new TextElement
+				TextElements = new List<TextElement>
 				{
-					Height = 200,
-					Width = 400,
-					FontSize = 35,
-					FontWeight = 3,
-					Z_Index = 1,
-					IsItalic = true,
-					isUnderLine = true,
-					isBold = true,
-					Opacity = 0.5M,
-					X = 50,
-					Y = 220,
-					ColorRGB = new List<byte>{255, 255, 255 },
-					BackgroundColorRBG = new List<byte>{0, 120, 120 },
-					Font = "Calibri",
-					IsCustomFont = false,
-					Text = "{Name} is the best",
-				}
-			},
+					 new TextElement
+					 {
+						  Height = 50,
+						  Width = 300,
+						  FontSize = 20,
+						  FontWeight = 3,
+						  Z_Index = 1,
+						  IsItalic = false,
+						  isBold = true,
+						  Opacity = 1,
+						  X = 260,
+						  Y = 390,
+						  ColorRGB = new List<byte>{ 255,255,255,255},
+						  BackgroundColorRGBA = new List<byte>{8, 6,6, 0},
+						  Font = "Raleway",
+						  IsCustomFont = true,
+						  Text = @"TODAY ONLY AT {Price}{Currency}"
+					 },
+					 new TextElement
+					 {
+						  Height = 100,
+						  Width = 300,
+						  FontSize = 35,
+						  FontWeight = 3,
+						  Z_Index = 2,
+						  IsItalic = false,
+						  isUnderLine = true,
+						  isBold = true,
+						  Opacity = 1,
+						  X = 260,
+						  Y = 250,
+						  ColorRGB = new List<byte>{255,255,255,255},
+						  BackgroundColorRGBA = new List<byte>{205, 228, 37, 215},
+						  Font = "Raleway",
+						  IsCustomFont = true,
+						  Text = "SHOP FOR {Name} NOW! ",
+						  Degree = 77,
+					 },
+				},
 				Height = 700,
 				Width = 700
 			};
 
 			var stopwatch = Stopwatch.StartNew();
-			await GenerateTemplateImages(products, template, 10, 5);
+			var orderedTemplate = OrderTemplateElements(template);
+			await GenerateTemplateImages(products, orderedTemplate, template, 10, 5);
 			stopwatch.Stop();
 			Console.WriteLine(new TimeSpan(stopwatch.ElapsedTicks).TotalSeconds);
 
 			Console.ReadLine();
 		}
 
-		private static async Task GenerateTemplateImages(List<Product> products, Template template, int maximimBatchCount, int minimumBatchSize)
+		private static List<Element> OrderTemplateElements(Template template)
+		{
+			var templateElements = new List<Element>();
+			templateElements.AddRange(template.ImageElements);
+			templateElements.AddRange(template.TextElements);
+			templateElements.AddRange(template.ShapeElements);
+			return templateElements.OrderBy(e => e.Z_Index).ToList();
+
+		}
+
+		private static async Task GenerateTemplateImages(List<Product> products, List<Element> orderedTemplate, Template template, int maximimBatchCount, int minimumBatchSize)
 		{
 			int totalItemCount = products.Count;
 
@@ -109,7 +116,7 @@ namespace ConsoleApp1
 			{
 				var batch = GetBatch(products, iteration, batchsize);
 				var batchId = iteration;
-				tasks.Add(Task.Run(() => GenerateImages(template, batch, batchId + 1, directoryName)));
+				tasks.Add(Task.Run(() => GenerateImages(orderedTemplate, template, batch, batchId + 1, directoryName)));
 
 				iteration = iteration + 1;
 			}
@@ -129,8 +136,6 @@ namespace ConsoleApp1
 			return appropriateBatchSize;
 		}
 
-
-
 		private static List<Product> GetBatch(List<Product> products, int iteration, int appropriateBatchSize)
 		{
 			return products.Skip(iteration * appropriateBatchSize).Take(appropriateBatchSize).ToList();
@@ -144,7 +149,7 @@ namespace ConsoleApp1
 				var createdProduct = new Product
 				{
 					Currency = "USD",
-					Name = i.ToString(),
+					Name = $"Product- {i}",
 					Price = new Random().Next(50, 2000),
 					ImageUrl = "https://picsum.photos/700"
 				};
@@ -154,7 +159,7 @@ namespace ConsoleApp1
 			return listofItems;
 		}
 
-		public static async Task GenerateImages(Template template, List<Product> productBatch, int batchId, string directoryName)
+		public static async Task GenerateImages(List<Element> orderedTemplate, Template template, List<Product> productBatch, int batchId, string directoryName)
 		{
 			Console.WriteLine($"Generating images for batch {batchId} : {productBatch.Count()} products");
 
@@ -165,8 +170,8 @@ namespace ConsoleApp1
 					Console.WriteLine($"Batch:{batchId} - Product:{product.Name} - generating image");
 
 					await LayerProductImage(product.ImageUrl, canvas, template);
-					LayerImages(canvas, template);
-					LayerTexts(template, product, canvas);
+					LayerImages(canvas, orderedTemplate);
+					LayerTexts( product, canvas, orderedTemplate);
 
 					canvas.Save($"{directoryName}/{product.Name}.jpeg");
 				}
@@ -180,74 +185,74 @@ namespace ConsoleApp1
 			var backgroundImage = await DownloadImageFromUrl(productImageUrl);
 
 			backgroundImage.Mutate(x => x
-								 .Resize(new ResizeOptions
-								 {
-									 Size = new Size(template.Width, template.Height),
-									 Mode = ResizeMode.Pad,
-									 Position = AnchorPositionMode.Center
-								 }));
+								.Resize(new ResizeOptions
+								{
+									Size = new Size(template.Width, template.Height),
+									Mode = ResizeMode.Pad,
+									Position = AnchorPositionMode.Center
+								}));
 			canvas.Mutate(c => c.DrawImage(backgroundImage, 1));
 		}
 
-		private static void LayerImages(Image canvas, Template template)
+		private static void LayerImages(Image canvas, List<Element> imageElements)
 		{
-			Parallel.ForEach(template.ImageElements, (item) =>
+			var flipMode = FlipMode.None;
+			Parallel.ForEach(imageElements, (element) =>
 			{
-				var image = DownloadImageFromUrl(item.ImageUrl).Result;
-				image.Mutate(x => x.Resize(item.Width, item.Height)
-					.Opacity((float)(item.Opacity)));
-				// rotation
-				// flipped?
+				if (element is ImageElement imageElement)
+				{
 
-				canvas.Mutate(ctx => ctx.DrawImage(image, new Point(item.X, item.Y), 1)); // add Z index
+					if (imageElement.IsFlipped)
+					{
+						flipMode = (FlipMode)imageElement.FlipMode;
+					}
+
+					var image = DownloadImageFromUrl(imageElement.ImageUrl).Result;
+					image.Mutate(x => x.Resize(imageElement.Width, imageElement.Height)
+							.Opacity((float)(imageElement.Opacity))
+							.Rotate((float)imageElement.Degree)
+							.Flip(flipMode));
+
+					canvas.Mutate(ctx => ctx.DrawImage(image, new Point(element.X, element.Y), 1));
+				}
 			});
 		}
 
-		private static void LayerTexts(Template template, Product product, Image canvas)
+		private static void LayerTexts(Product product, Image canvas, List<Element> textElements)
 		{
 			var productJObject = JObject.FromObject(product);
 
-			foreach (var textElement in template.TextElements)
+			foreach (var element in textElements)
 			{
-				var text = BuildDynamicText(productJObject, textElement.Text);
-
-				var textBackground = new Image<Rgba32>(textElement.Width, textElement.Height);
-				var font = GetFont(textElement);
-
-				// this will come from TextElements in the future, for now leave it hardcoded
-				var textGraphicsOptions = new TextGraphicsOptions()
+				if (element is TextElement textElement)
 				{
-					TextOptions = {
-						WrapTextWidth = textElement.Width,
-						HorizontalAlignment = HorizontalAlignment.Center },
-					GraphicsOptions = { }
-				};
+					
 
-				if (textElement.BackgroundColorRBG != null)
-				{
-					textBackground.Mutate(a => a.Fill(Color.FromRgb(textElement.BCR, textElement.BCG, textElement.BCB)));
+					var dynamicText = BuildDynamicText(productJObject, textElement.Text);
+
+					var textBackground = new Image<Rgba32>(textElement.Width, textElement.Height);
+					var font = GetFont(textElement);
+
+					var textGraphicsOptions = new TextGraphicsOptions()
+					{
+						TextOptions = {
+								WrapTextWidth = textElement.Width,
+								HorizontalAlignment = HorizontalAlignment.Center },
+						GraphicsOptions = { }
+					};
+
+					if (textElement.BackgroundColorRGBA != null)
+					{
+						textBackground.Mutate(a => a.Fill(Color.FromRgba(textElement.BCR, textElement.BCG, textElement.BCB, textElement.BCA)));
+					}
+					textBackground.Mutate(a => a.DrawText(textGraphicsOptions, dynamicText, font, Color.FromRgb(textElement.CR, textElement.CG, textElement.CB), new PointF(0, 0)));
+
+					canvas.Mutate(ctx => ctx.DrawImage(textBackground, new Point(textElement.X, textElement.Y), (float)textElement.Opacity)); 
 				}
-				textBackground.Mutate(a => a.DrawText(textGraphicsOptions, text, font, Color.FromRgb(textElement.CR, textElement.CG, textElement.CB), new PointF(0, 0)));
-
-				canvas.Mutate(ctx => ctx.DrawImage(textBackground, new Point(textElement.X, textElement.Y), (float)textElement.Opacity));
 			}
 		}
 
-		private static Font GetFont(TextElement item)
-		{
-			// TODO: handle both bold and italic simultaneously
-			var fontStyle = item.IsItalic ? FontStyle.Italic : FontStyle.Regular;
-			fontStyle = item.isBold ? FontStyle.Bold : FontStyle.Regular;
-
-			// TODO: item.FontFamily needs to be supported. (must be a valid FontFamily value)
-			// TODO: handle custom fonts from user
-			if (item.IsCustomFont)
-			{
-				// get the font from the DB, and apply it and return
-			}
-
-			return SystemFonts.CreateFont(item.Font, item.FontSize, fontStyle);
-		}
+		
 
 		private static string BuildDynamicText(JObject productJObject, string text)
 		{
@@ -284,6 +289,55 @@ namespace ConsoleApp1
 					throw new Exception();
 				}
 			}
+		}
+
+		private static Font GetFont(TextElement item)
+		{
+			var fontStyle = FontStyle.Regular;
+			if (item.isBold && item.IsItalic)
+			{
+				fontStyle = FontStyle.BoldItalic;
+			}
+			else if (item.isBold)
+			{
+				fontStyle = FontStyle.Bold;
+			}
+			else if (item.IsItalic)
+			{
+				fontStyle = FontStyle.Italic;
+			}
+
+
+			if (!item.IsCustomFont)
+			{
+				return SystemFonts.CreateFont(item.Font, item.FontSize, fontStyle);
+			}
+			else
+			{
+				var fontCollection = LoadCustomFonts(item.Font);
+
+				if (fontCollection.TryFind(item.Font, out FontFamily fontFamily))
+				{
+					return fontFamily.CreateFont(item.FontSize, fontStyle);
+				}
+				else
+				{
+					return SystemFonts.CreateFont(defaultFont, item.FontSize, fontStyle);
+				}
+			}
+		}
+		private static FontCollection LoadCustomFonts(string fontName)
+		{
+			var collection = new FontCollection();
+			try
+			{
+				collection.Install(Path.Combine("Resources", "Fonts", $"{fontName}.ttf"));
+			}
+			catch
+			{
+			}
+
+			return collection;
 		}
 	}
 }

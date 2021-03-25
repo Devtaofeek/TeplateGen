@@ -5,5 +5,7 @@
 		public string ImageUrl { get; set; }
 
 		public bool IsFlipped { get; set; }
+
+		public int FlipMode { get; set; }
 	}
 }

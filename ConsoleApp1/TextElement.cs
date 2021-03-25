@@ -15,10 +15,12 @@ namespace ConsoleApp1
 
 		public bool IsCustomFont { get; set; }
 
-		public List<byte> BackgroundColorRBG { get; set; }
-		public byte BCR { get => BackgroundColorRBG[0]; }
-		public byte BCG { get => BackgroundColorRBG[1]; }
-		public byte BCB { get => BackgroundColorRBG[2]; }
+		public List<byte> BackgroundColorRGBA { get; set; }
+		public byte BCR { get => BackgroundColorRGBA[0]; }
+		public byte BCG { get => BackgroundColorRGBA[1]; }
+		public byte BCB { get => BackgroundColorRGBA[2]; }
+
+		public byte BCA { get => BackgroundColorRGBA[3]; }
 
 		public List<byte> ColorRGB { get; set; }
 		public byte CR { get => ColorRGB[0]; }
