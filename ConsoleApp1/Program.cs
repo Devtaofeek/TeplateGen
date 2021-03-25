@@ -1,206 +1,264 @@
-﻿using System.Collections.Generic;
-using System.Net;
-using System.Net.Http;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 using SixLabors.Fonts;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace ConsoleApp1
 {
-	static class Program
-	{
+    internal static class Program
+    {
+        private static HttpWebRequest webClient;
 
-		private static HttpWebRequest webClient;
+        private static async Task Main(string[] args)
+        {
+            var product = new Product
+            {
+                Currency = "USD",
+                Name = "Headphone",
+                Price = 50,
+                ImageUrl = "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=1280"
+            };
 
-		static void Main(string[] args)
-		{
-			var product = new Product
-			{
-				Currency = "USD",
-				Name = "Headphone",
-				Price = 50,
-				ImageUrl = "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=1280"
-			};
+            var template = new Template
+            {
+                ImageElements = new List<ImageElement>()
+            {
+                 new ImageElement
+                 {
+                     Y = 0,
+                     X = 0,
+                     Z_Index = 30,
+                     Height = 200,
+                     Width = 200,
+                     Opacity = 0.75M,
+                     ImageUrl = @"https://wiki.b-zone.ro/images/1/16/Discount_logo.png"
+                 }
+            },
+                TextElements = new List<TextElement>
+            {
+                new TextElement
+                {
+                    Height = 250,
+                    Width = 300,
+                    FontSize = 25,
+                    FontWeight = 3,
+                    Z_Index = 8,
+                    IsItalic = false,
+                    isBold = false,
+                    Opacity = 1,
+                    X = 150,
+                    Y = 50,
+                    ColorRGB = new List<byte>{255, 0, 0 },
+                    BackgroundColorRBG = new List<byte>{200, 120, 120 },
+                    Font = "Arial",
+                    IsCustomFont = false,
+                    Text = @"{Name} is sold at {Price}{Currency}. IT has been the industry's standard dummy text ever since the 1500s,when an unknown printer took a of type and scrambled it to make a type specimen book"
+                },
+                new TextElement
+                {
+                    Height = 250,
+                    Width = 400,
+                    FontSize = 35,
+                    FontWeight = 3,
+                    Z_Index = 4,
+                    IsItalic = false,
+                    isUnderLine = true,
+                    isBold = false,
+                    Opacity = 0.5M,
+                    X = 150,
+                    Y = 100,
+                    ColorRGB = new List<byte>{255, 255, 255 },
+                    BackgroundColorRBG = new List<byte>{0, 120, 120 },
+                    Font = "Calibri",
+                    IsCustomFont = false,
+                    Text = "{Name} is the best",
+                },
+                new TextElement
+                {
+                    Height = 250,
+                    Width = 400,
+                    FontSize = 35,
+                    FontWeight = 3,
+                    Z_Index = 7,
+                    IsItalic = false,
+                    isUnderLine = true,
+                    isBold = false,
+                    Opacity = 0.5M,
+                    X = 150,
+                    Y = 100,
+                    ColorRGB = new List<byte>{255, 255, 255 },
+                    BackgroundColorRBG = new List<byte>{0, 234, 255 },
+                    Font = "Calibri",
+                    IsCustomFont = false,
+                    Text = "{Name} is the best",
+                }
+            },
+                Height = 700,
+                Width = 700
+            };
 
-			var template = new Template
-			{
-				ImageElements = new List<ImageElement>()
-			{
-				 new ImageElement
-				 {
-					 Y = 0,
-					 X = 0,
-					 Height = 300,
-					 Width = 300,
-					 Opacity = 0.75M,
-					 ImageUrl = "https://thumbs.dreamstime.com/b/discount-stamp-vector-clip-art-33305813.jpg" // change this to a PNG
-				 }
-			},
-				TextElements = new List<TextElement>
-			{
-				new TextElement
-				{
-					Height = 250,
-					Width = 300,
-					FontSize = 25,
-					FontWeight = 3,
-					Z_Index = 1,
-					IsItalic = false,
-					isBold = true,
-					Opacity = 1,
-					X = 150,
-					Y = 50,
-					ColorRGB = new List<byte>{255, 0, 0 },
-					Font = "Arial",
-					IsCustomFont = false,
-					Text = @"{Name} is sold at {Price}{Currency}. IT has been the industry's standard dummy text ever since the 1500s,when an unknown printer took a of type and scrambled it to make a type specimen book"
-				},
-				new TextElement
-				{
-					Height = 200,
-					Width = 400,
-					FontSize = 35,
-					FontWeight = 3,
-					Z_Index = 1,
-					IsItalic = true,
-					isUnderLine = true,
-					isBold = true,
-					Opacity = 0.5M,
-					X = 50,
-					Y = 220,
-					ColorRGB = new List<byte>{255, 255, 255 },
-					BackgroundColorRBG = new List<byte>{0, 120, 120 },
-					Font = "Calibri",
-					IsCustomFont = false,
-					Text = "{Name} is the best",
-				}
-			},
-				Height = 700,
-				Width = 700
-			};
+          await  GenerateImage(template, product);
+        }
 
-			GenerateTemplate(template, product);
-		}
+        public static async Task GenerateImage(Template template, Product product)
+        {
+            System.IO.Directory.CreateDirectory("output");
 
-		public static async Task GenerateTemplate(Template template, Product product)
-		{
-			System.IO.Directory.CreateDirectory("output");
+            var templateElements = new List<Element>();
+            templateElements.AddRange(template.ImageElements);
+            templateElements.AddRange(template.TextElements);
+            templateElements.AddRange(template.ShapeElements);
 
-			using (Image canvas = new Image<Rgba32>(template.Width, template.Height))
-			{
-				LayerProductImage(product.ImageUrl, canvas, template);
+            var orderdTemplateElements = templateElements.
+                OrderBy(e => e.Z_Index);
+            using (Image canvas = new Image<Rgba32>(template.Width, template.Height))
+            {
+                await LayerProductImage(product.ImageUrl, canvas, template);
+                foreach (var element in orderdTemplateElements)
+                {
+                    if (element is ImageElement imageElement)
+                    {
+                        await LayerImage(canvas, imageElement);
+                    }
 
-				await LayerImages(canvas, template);
+                    if (element is TextElement textElement)
+                    {
+                        LayerText(textElement, product, canvas);
+                    }
+                }
 
-				LayerTexts(template, product, canvas);
+                canvas.Save("output/wordart.png");
+            }
+        }
 
-				canvas.Save("output/wordart.png");
-			}
-		}
+        private static async Task LayerProductImage(string productImageUrl, Image canvas, Template template)
+        {
+            var backgroundImage = await DownloadImageFromUrl(productImageUrl);
 
-		private static async Task LayerProductImage(string productImageUrl, Image canvas, Template template)
-		{
-			var backgroundImage = await DownloadImageFromUrl(productImageUrl);
+            backgroundImage.Mutate(x => x
+                                 .Resize(new ResizeOptions
+                                 {
+                                     Size = new Size(template.Width, template.Height),
+                                     Mode = ResizeMode.Pad,
+                                     Position = AnchorPositionMode.Center
+                                 }));
+            canvas.Mutate(c => c.Fill(Color.White)
+                .DrawImage(backgroundImage, 1));
+        }
 
-			backgroundImage.Mutate(x => x
-								 .Resize(new ResizeOptions
-								 {
-									 Size = new Size(template.Width, template.Height),
-									 Mode = ResizeMode.Pad,
-									 Position = AnchorPositionMode.Center
-								 }));
-			canvas.Mutate(c => c.DrawImage(backgroundImage, 1));
-		}
+        private static async Task LayerImage(Image canvas, ImageElement element)
+        {
+            var flipMode = SixLabors.ImageSharp.Processing.FlipMode.None;
+            if (element.IsFlipped)
+            {
+                flipMode = (FlipMode)element.FlipMode;
+            }
+            var image = await DownloadImageFromUrl(element.ImageUrl);
+            image.Mutate(x => x.Resize(element.Width, element.Height)
+                .Opacity((float)(element.Opacity))
+                .Rotate((float)element.Degree)
+                .Flip(flipMode));
 
-		private static async Task LayerImages(Image canvas, Template template)
-		{
-			foreach (var item in template.ImageElements)
-			{
-				var image = await DownloadImageFromUrl(item.ImageUrl);
-				image.Mutate(x => x.Resize(item.Width, item.Height)
-					.Opacity((float)(item.Opacity)));
-				// rotation
-				// flipped?
+            canvas.Mutate(ctx => ctx.DrawImage(image, new Point(element.X, element.Y), 1)); // add Z index
+        }
 
-				canvas.Mutate(ctx => ctx.DrawImage(image, new Point(item.X, item.Y), 1)); // add Z index
-			}
-		}
+        private static void LayerText(TextElement element, Product product, Image canvas)
+        {
+            var productJObject = JObject.FromObject(product);
 
-		private static void LayerTexts(Template template, Product product, Image canvas)
-		{
-			var productJObject = JObject.FromObject(product);
+            var text = BuildDynamicText(productJObject, element.Text);
 
-			foreach (var textElement in template.TextElements)
-			{
-				var text = BuildDynamicText(productJObject, textElement.Text);
+            var textBackground = new Image<Rgba32>(element.Width, element.Height);
+            var font = GetFont(element);
 
-				var textBackground = new Image<Rgba32>(textElement.Width, textElement.Height);
-				var font = GetFont(textElement);
+            var textGraphicsOptions = new TextGraphicsOptions()
+            {
+                TextOptions = {
+                        WrapTextWidth = element.Width,
+                        HorizontalAlignment = HorizontalAlignment.Center },
+                GraphicsOptions = { }
+            };
 
-				// this will come from TextElements in the future, for now leave it hardcoded
-				var textGraphicsOptions = new TextGraphicsOptions()
-				{
-					TextOptions = {
-						WrapTextWidth = textElement.Width,
-						HorizontalAlignment = HorizontalAlignment.Center },
-					GraphicsOptions = { }
-				};
+            if (element.BackgroundColorRBG != null)
+            {
+                textBackground.Mutate(a => a.Fill(Color.FromRgb(element.BCR, element.BCG, element.BCB)));
+            }
+            textBackground.Mutate(a => a.DrawText(textGraphicsOptions, text, font, Color.FromRgb(element.CR, element.CG, element.CB), new PointF(0, 0)));
 
-				if (textElement.BackgroundColorRBG != null)
-				{
-					textBackground.Mutate(a => a.Fill(Color.FromRgb(textElement.BCR, textElement.BCG, textElement.BCB)));
-				}
-				textBackground.Mutate(a => a.DrawText(textGraphicsOptions, text, font, Color.FromRgb(textElement.CR, textElement.CG, textElement.CB), new PointF(0, 0)));
+            canvas.Mutate(ctx => ctx.DrawImage(textBackground, new Point(element.X, element.Y), (float)element.Opacity));
+        }
 
-				canvas.Mutate(ctx => ctx.DrawImage(textBackground, new Point(textElement.X, textElement.Y), (float)textElement.Opacity));
-			}
-		}
+        private static Font GetFont(TextElement item)
+        {
+            var fontStyle = FontStyle.Regular;
+            if (item.isBold && item.IsItalic)
+            {
+                fontStyle = FontStyle.BoldItalic;
+            }
+            else if (item.isBold)
+            {
+                fontStyle = FontStyle.Bold;
+            }
+            else if (item.IsItalic)
+            {
+                fontStyle = FontStyle.Italic;
+            }
 
-		private static Font GetFont(TextElement item)
-		{
-			// TODO: handle both bold and italic simultaneously
-			var fontStyle = item.IsItalic ? FontStyle.Italic : FontStyle.Regular;
-			fontStyle = item.isBold ? FontStyle.Bold : FontStyle.Regular;
+            // TODO: item.FontFamily needs to be supported. (must be a valid FontFamily value)
+            // TODO: handle custom fonts from user
+            if (item.IsCustomFont)
+            {
+                // get the font from the DB, and apply it and return
+                FontCollection collection = new FontCollection();
+                collection.Install(Path.Combine("Resources", "Fonts", "Nunito.ttf"));
 
-			// TODO: item.FontFamily needs to be supported. (must be a valid FontFamily value)
-			// TODO: handle custom fonts from user
-			if (item.IsCustomFont)
-			{
-				// get the font from the DB, and apply it and return
-			}
+                if (collection.TryFind(item.Font, out FontFamily fontFamily))
+                {
+                    Font font = fontFamily.CreateFont(item.FontSize, fontStyle);
+                    return font;
+                }
+                else
+                {
+                    return SystemFonts.CreateFont(item.Font, item.FontSize, fontStyle);
+                }
+            }
+            else
+            {
+                return SystemFonts.CreateFont(item.Font, item.FontSize, fontStyle);
+            }
+        }
 
-			return SystemFonts.CreateFont(item.Font, item.FontSize, fontStyle);
-		}
+        private static string BuildDynamicText(JObject productJObject, string text)
+        {
+            var tokens = new Dictionary<string, string>();
 
-		private static string BuildDynamicText(JObject productJObject, string text)
-		{
-			var tokens = new Dictionary<string, string>();
+            Regex reg = new Regex(@"{\w+}");
+            foreach (Match match in reg.Matches(text))
+            {
+                var propertyName = match.Value.Substring(1, match.Value.Length - 2);
+                tokens.Add(match.Value, productJObject.Value<string>(propertyName));
+            }
 
-			Regex reg = new Regex(@"{\w+}");
-			foreach (Match match in reg.Matches(text))
-			{
-				var propertyName = match.Value.Substring(1, match.Value.Length - 2);
-				tokens.Add(match.Value, productJObject.Value<string>(propertyName));
-			}
+            foreach (var token in tokens)
+            {
+                text = text.Replace(token.Key, tokens[token.Key]);
+            }
 
-			foreach (var token in tokens)
-			{
-				text = text.Replace(token.Key, tokens[token.Key]);
-			}
+            return text;
+        }
 
-			return text;
-		}
-
-		private static async Task<Image> DownloadImageFromUrl(string imageUrl)
-		{
-			// we will use something similar to this in the final code
-			/*using (var client = new HttpClient())
+        private static async Task<Image> DownloadImageFromUrl(string imageUrl)
+        {
+            // we will use something similar to this in the final code
+            /*using (var client = new HttpClient())
 			{
 				var response = await client.GetAsync(imageUrl);
 				if (response.IsSuccessStatusCode)
@@ -209,16 +267,16 @@ namespace ConsoleApp1
 				}
 			}*/
 
-			webClient = (HttpWebRequest)HttpWebRequest.Create(imageUrl);
-			webClient.AllowWriteStreamBuffering = true;
-			webClient.AllowReadStreamBuffering = true;
-			webClient.Timeout = 30000;
+            webClient = (HttpWebRequest)HttpWebRequest.Create(imageUrl);
+            webClient.AllowWriteStreamBuffering = true;
+            webClient.AllowReadStreamBuffering = true;
+            webClient.Timeout = 30000;
 
-			var webResponse = webClient.GetResponse();
-			var stream = webResponse.GetResponseStream();
-			var image = Image.Load(stream);
+            var webResponse = webClient.GetResponse();
+            var stream = webResponse.GetResponseStream();
+            var image = Image.Load(stream);
 
-			return image;
-		}
-	}
+            return image;
+        }
+    }
 }

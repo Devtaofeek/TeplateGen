@@ -1,15 +1,15 @@
 {
   "version": 2,
-  "dgSpecHash": "tNRlEqzPMnfNhFdQqk1amM+w79K0IPV2bPf2LCYWyf34qassifCpzXSR+d37WlZFZoZICu/TY87tIea1mEICWw==",
+  "dgSpecHash": "CyykNfewJEG282eLP6BQROezXjoVMMY9MLiAxYSuJKd8587XD/VLVltj4Z79oI3zwdPgVemgoLoYyFBs0swdrA==",
   "success": true,
-  "projectFilePath": "B:\\Users\\razva\\source\\repos\\Filed\\TeplateGen\\ConsoleApp1\\ConsoleApp1.csproj",
+  "projectFilePath": "C:\\Users\\taofeeal\\RiderProjects\\ConsoleApp1\\ConsoleApp1\\ConsoleApp1.csproj",
   "expectedPackageFiles": [
-    "B:\\Users\\razva\\.nuget\\packages\\newtonsoft.json\\13.0.1\\newtonsoft.json.13.0.1.nupkg.sha512",
-    "B:\\Users\\razva\\.nuget\\packages\\sixlabors.fonts\\1.0.0-beta0013\\sixlabors.fonts.1.0.0-beta0013.nupkg.sha512",
-    "B:\\Users\\razva\\.nuget\\packages\\sixlabors.imagesharp\\1.0.3\\sixlabors.imagesharp.1.0.3.nupkg.sha512",
-    "B:\\Users\\razva\\.nuget\\packages\\sixlabors.imagesharp.drawing\\1.0.0-beta11\\sixlabors.imagesharp.drawing.1.0.0-beta11.nupkg.sha512",
-    "B:\\Users\\razva\\.nuget\\packages\\system.numerics.vectors\\4.5.0\\system.numerics.vectors.4.5.0.nupkg.sha512",
-    "B:\\Users\\razva\\.nuget\\packages\\system.runtime.compilerservices.unsafe\\4.7.0\\system.runtime.compilerservices.unsafe.4.7.0.nupkg.sha512"
+    "C:\\Users\\taofeeal\\.nuget\\packages\\newtonsoft.json\\13.0.1\\newtonsoft.json.13.0.1.nupkg.sha512",
+    "C:\\Users\\taofeeal\\.nuget\\packages\\sixlabors.fonts\\1.0.0-beta0013\\sixlabors.fonts.1.0.0-beta0013.nupkg.sha512",
+    "C:\\Users\\taofeeal\\.nuget\\packages\\sixlabors.imagesharp\\1.0.3\\sixlabors.imagesharp.1.0.3.nupkg.sha512",
+    "C:\\Users\\taofeeal\\.nuget\\packages\\sixlabors.imagesharp.drawing\\1.0.0-beta11\\sixlabors.imagesharp.drawing.1.0.0-beta11.nupkg.sha512",
+    "C:\\Users\\taofeeal\\.nuget\\packages\\system.numerics.vectors\\4.5.0\\system.numerics.vectors.4.5.0.nupkg.sha512",
+    "C:\\Users\\taofeeal\\.nuget\\packages\\system.runtime.compilerservices.unsafe\\4.7.0\\system.runtime.compilerservices.unsafe.4.7.0.nupkg.sha512"
   ],
   "logs": []
 }
