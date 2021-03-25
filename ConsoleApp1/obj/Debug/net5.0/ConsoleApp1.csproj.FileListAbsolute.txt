@@ -67,3 +67,9 @@ C:\Users\user\source\repos\TeplateGen\ConsoleApp1\bin\Debug\net5.0\Resources\Fon
 C:\Users\user\source\repos\TeplateGen\ConsoleApp1\bin\Debug\net5.0\Resources\Fonts\Poppins.ttf
 C:\Users\user\source\repos\TeplateGen\ConsoleApp1\bin\Debug\net5.0\Resources\Fonts\Roboto.ttf
 C:\Users\user\source\repos\TeplateGen\ConsoleApp1\bin\Debug\net5.0\Resources\Fonts\Raleway.ttf
+B:\Users\razva\source\repos\Filed\TeplateGen\ConsoleApp1\bin\Debug\net5.0\Resources\Fonts\Arial.ttf
+B:\Users\razva\source\repos\Filed\TeplateGen\ConsoleApp1\bin\Debug\net5.0\Resources\Fonts\Calibri.ttf
+B:\Users\razva\source\repos\Filed\TeplateGen\ConsoleApp1\bin\Debug\net5.0\Resources\Fonts\Nunito.ttf
+B:\Users\razva\source\repos\Filed\TeplateGen\ConsoleApp1\bin\Debug\net5.0\Resources\Fonts\Poppins.ttf
+B:\Users\razva\source\repos\Filed\TeplateGen\ConsoleApp1\bin\Debug\net5.0\Resources\Fonts\Raleway.ttf
+B:\Users\razva\source\repos\Filed\TeplateGen\ConsoleApp1\bin\Debug\net5.0\Resources\Fonts\Roboto.ttf

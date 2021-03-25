@@ -15,12 +15,20 @@ using System.Threading.Tasks;
 
 namespace ConsoleApp1
 {
+	/// <summary>
+	/// 1. create batches
+	/// 2. for each batch, you have 1 task ( no parallelism inside a batch)
+	/// 3. for each batch, generate product images 1 by 1
+	/// 4. to generate a product image
+	///  - create a canvas and add the product image
+	///  - go through each element in the order list of template elements and apply it
+	/// </summary>
 	static class Program
 	{
 		private static string defaultFont = "Algerian";
 		static async Task Main(string[] args)
 		{
-			var products = GenerateListOfItems(100);
+			var products = GenerateProductList(5);
 			var template = new Template
 			{
 				ImageElements = new List<ImageElement>()
@@ -32,7 +40,7 @@ namespace ConsoleApp1
 						Z_Index = 30,
 						Height = 200,
 						Width = 200,
-						Opacity = 0.75M,
+						Opacity = 0.85M,
 						ImageUrl = @"https://wiki.b-zone.ro/images/1/16/Discount_logo.png"
 					}
 				},
@@ -42,8 +50,7 @@ namespace ConsoleApp1
 					 {
 						  Height = 50,
 						  Width = 300,
-						  FontSize = 20,
-						  FontWeight = 3,
+						  FontSize = 40,
 						  Z_Index = 1,
 						  IsItalic = false,
 						  isBold = true,
@@ -52,7 +59,24 @@ namespace ConsoleApp1
 						  Y = 390,
 						  ColorRGB = new List<byte>{ 255,255,255,255},
 						  BackgroundColorRGBA = new List<byte>{8, 6,6, 0},
-						  Font = "Raleway",
+						  Font = "Calibri",
+						  IsCustomFont = true,
+						  Text = @"TODAY ONLY AT {Price}{Currency}"
+					 },
+					new TextElement
+					 {
+						  Height = 50,
+						  Width = 300,
+						  FontSize = 40,
+						  Z_Index = 1,
+						  IsItalic = false,
+						  isBold = false,
+						  Opacity = 1,
+						  X = 260,
+						  Y = 470,
+						  ColorRGB = new List<byte>{ 255,255,255,255},
+						  BackgroundColorRGBA = new List<byte>{8, 6,6, 0},
+						  Font = "Calibri",
 						  IsCustomFont = true,
 						  Text = @"TODAY ONLY AT {Price}{Currency}"
 					 },
@@ -61,7 +85,6 @@ namespace ConsoleApp1
 						  Height = 100,
 						  Width = 300,
 						  FontSize = 35,
-						  FontWeight = 3,
 						  Z_Index = 2,
 						  IsItalic = false,
 						  isUnderLine = true,
@@ -82,41 +105,45 @@ namespace ConsoleApp1
 			};
 
 			var stopwatch = Stopwatch.StartNew();
-			var orderedTemplate = OrderTemplateElements(template);
-			await GenerateTemplateImages(products, orderedTemplate, template, 10, 5);
+
+			var orderedTemplateElements = GetOrderedTemplateElements(template);
+			await GenerateTemplateImages(products, orderedTemplateElements, template, 10, 5);
+
 			stopwatch.Stop();
 			Console.WriteLine(new TimeSpan(stopwatch.ElapsedTicks).TotalSeconds);
 
 			Console.ReadLine();
 		}
 
-		private static List<Element> OrderTemplateElements(Template template)
+		private static List<Element> GetOrderedTemplateElements(Template template)
 		{
 			var templateElements = new List<Element>();
 			templateElements.AddRange(template.ImageElements);
 			templateElements.AddRange(template.TextElements);
 			templateElements.AddRange(template.ShapeElements);
 			return templateElements.OrderBy(e => e.Z_Index).ToList();
-
 		}
 
-		private static async Task GenerateTemplateImages(List<Product> products, List<Element> orderedTemplate, Template template, int maximimBatchCount, int minimumBatchSize)
+		private static async Task GenerateTemplateImages(List<Product> products, List<Element> orderedTemplateElements, Template template, int maximimBatchCount, int minimumBatchSize)
 		{
+			if (products == null || products.Count == 0)
+			{
+				return;
+			}
+
 			int totalItemCount = products.Count;
-
 			var batchsize = GetAppropriateBatchSize(products, maximimBatchCount, minimumBatchSize, totalItemCount);
-
-			var tasks = new List<Task>();
 
 			var directoryName = $"output-{DateTime.UtcNow}".Replace(":", "_");
 			System.IO.Directory.CreateDirectory(directoryName);
 
+			var tasks = new List<Task>();
 			var iteration = 0;
 			do
 			{
 				var batch = GetBatch(products, iteration, batchsize);
 				var batchId = iteration;
-				tasks.Add(Task.Run(() => GenerateImages(orderedTemplate, template, batch, batchId + 1, directoryName)));
+				tasks.Add(Task.Run(() => GenerateImages(orderedTemplateElements, template, batch, batchId + 1, directoryName)));
 
 				iteration = iteration + 1;
 			}
@@ -141,7 +168,7 @@ namespace ConsoleApp1
 			return products.Skip(iteration * appropriateBatchSize).Take(appropriateBatchSize).ToList();
 		}
 
-		private static List<Product> GenerateListOfItems(int count)
+		private static List<Product> GenerateProductList(int count)
 		{
 			var listofItems = new List<Product>();
 			for (int i = 0; i < count; i++)
@@ -159,19 +186,20 @@ namespace ConsoleApp1
 			return listofItems;
 		}
 
-		public static async Task GenerateImages(List<Element> orderedTemplate, Template template, List<Product> productBatch, int batchId, string directoryName)
+		public static async Task GenerateImages(List<Element> orderedTemplateElements, Template template, List<Product> productBatch, int batchId, string directoryName)
 		{
 			Console.WriteLine($"Generating images for batch {batchId} : {productBatch.Count()} products");
 
 			foreach (var product in productBatch)
 			{
+				Console.WriteLine($"Batch:{batchId} - Product:{product.Name} - generating image");
+
 				using (Image canvas = new Image<Rgba32>(template.Width, template.Height))
 				{
-					Console.WriteLine($"Batch:{batchId} - Product:{product.Name} - generating image");
-
+					// outdated logic
 					await LayerProductImage(product.ImageUrl, canvas, template);
-					LayerImages(canvas, orderedTemplate);
-					LayerTexts( product, canvas, orderedTemplate);
+					LayerImages(canvas, orderedTemplateElements);
+					LayerTexts(product, canvas, orderedTemplateElements);
 
 					canvas.Save($"{directoryName}/{product.Name}.jpeg");
 				}
@@ -185,12 +213,12 @@ namespace ConsoleApp1
 			var backgroundImage = await DownloadImageFromUrl(productImageUrl);
 
 			backgroundImage.Mutate(x => x
-								.Resize(new ResizeOptions
-								{
-									Size = new Size(template.Width, template.Height),
-									Mode = ResizeMode.Pad,
-									Position = AnchorPositionMode.Center
-								}));
+				.Resize(new ResizeOptions
+				{
+					Size = new Size(template.Width, template.Height),
+					Mode = ResizeMode.Pad,
+					Position = AnchorPositionMode.Center
+				}));
 			canvas.Mutate(c => c.DrawImage(backgroundImage, 1));
 		}
 
@@ -201,7 +229,6 @@ namespace ConsoleApp1
 			{
 				if (element is ImageElement imageElement)
 				{
-
 					if (imageElement.IsFlipped)
 					{
 						flipMode = (FlipMode)imageElement.FlipMode;
@@ -226,7 +253,7 @@ namespace ConsoleApp1
 			{
 				if (element is TextElement textElement)
 				{
-					
+
 
 					var dynamicText = BuildDynamicText(productJObject, textElement.Text);
 
@@ -247,12 +274,10 @@ namespace ConsoleApp1
 					}
 					textBackground.Mutate(a => a.DrawText(textGraphicsOptions, dynamicText, font, Color.FromRgb(textElement.CR, textElement.CG, textElement.CB), new PointF(0, 0)));
 
-					canvas.Mutate(ctx => ctx.DrawImage(textBackground, new Point(textElement.X, textElement.Y), (float)textElement.Opacity)); 
+					canvas.Mutate(ctx => ctx.DrawImage(textBackground, new Point(textElement.X, textElement.Y), (float)textElement.Opacity));
 				}
 			}
 		}
-
-		
 
 		private static string BuildDynamicText(JObject productJObject, string text)
 		{
@@ -275,7 +300,6 @@ namespace ConsoleApp1
 
 		private static async Task<Image> DownloadImageFromUrl(string imageUrl)
 		{
-			// we will use something similar to this in the final code
 			using (var client = new HttpClient())
 			{
 				var response = await client.GetAsync(imageUrl);
@@ -291,6 +315,7 @@ namespace ConsoleApp1
 			}
 		}
 
+		// this is not working as expected
 		private static Font GetFont(TextElement item)
 		{
 			var fontStyle = FontStyle.Regular;
@@ -326,6 +351,7 @@ namespace ConsoleApp1
 				}
 			}
 		}
+
 		private static FontCollection LoadCustomFonts(string fontName)
 		{
 			var collection = new FontCollection();

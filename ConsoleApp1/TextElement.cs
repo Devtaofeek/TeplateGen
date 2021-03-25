@@ -27,7 +27,7 @@ namespace ConsoleApp1
 		public byte CG { get => ColorRGB[1]; }
 		public byte CB { get => ColorRGB[2]; }
 
-		public int FontWeight { get; set; }
+		// public int FontWeight { get; set; } not in SixLabors.ImageSharp;
 
 		public bool isBold { get; set; }
 
