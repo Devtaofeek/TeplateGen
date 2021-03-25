@@ -20,7 +20,7 @@ namespace ConsoleApp1
 		private static string defaultFont = "Algerian";
 		static async Task Main(string[] args)
 		{
-			var products = GenerateListOfItems(100);
+			var products = GenerateListOfProducts(30);
 			var template = new Template
 			{
 				ImageElements = new List<ImageElement>()
@@ -82,15 +82,15 @@ namespace ConsoleApp1
 			};
 
 			var stopwatch = Stopwatch.StartNew();
-			var orderedTemplate = OrderTemplateElements(template);
-			await GenerateTemplateImages(products, orderedTemplate, template, 10, 5);
+			var orderedTemplateElements = GetOrderedTemplateElements(template);
+			await GenerateTemplateImages(products, orderedTemplateElements, template, 10, 5);
 			stopwatch.Stop();
 			Console.WriteLine(new TimeSpan(stopwatch.ElapsedTicks).TotalSeconds);
 
 			Console.ReadLine();
 		}
 
-		private static List<Element> OrderTemplateElements(Template template)
+		private static List<Element> GetOrderedTemplateElements(Template template)
 		{
 			var templateElements = new List<Element>();
 			templateElements.AddRange(template.ImageElements);
@@ -102,14 +102,18 @@ namespace ConsoleApp1
 
 		private static async Task GenerateTemplateImages(List<Product> products, List<Element> orderedTemplate, Template template, int maximimBatchCount, int minimumBatchSize)
 		{
-			int totalItemCount = products.Count;
+			if (products == null || products.Count == 0)
+			{
+				return;
+			}
 
-			var batchsize = GetAppropriateBatchSize(products, maximimBatchCount, minimumBatchSize, totalItemCount);
-
-			var tasks = new List<Task>();
-
+			var totalItemCount = products.Count;
 			var directoryName = $"output-{DateTime.UtcNow}".Replace(":", "_");
 			System.IO.Directory.CreateDirectory(directoryName);
+
+			var tasks = new List<Task>();
+			var batchsize = GetAppropriateBatchSize(products, maximimBatchCount, minimumBatchSize, totalItemCount);
+
 
 			var iteration = 0;
 			do
@@ -117,8 +121,7 @@ namespace ConsoleApp1
 				var batch = GetBatch(products, iteration, batchsize);
 				var batchId = iteration;
 				tasks.Add(Task.Run(() => GenerateImages(orderedTemplate, template, batch, batchId + 1, directoryName)));
-
-				iteration = iteration + 1;
+				iteration++;
 			}
 			while (totalItemCount > (batchsize * iteration));
 
@@ -141,7 +144,7 @@ namespace ConsoleApp1
 			return products.Skip(iteration * appropriateBatchSize).Take(appropriateBatchSize).ToList();
 		}
 
-		private static List<Product> GenerateListOfItems(int count)
+		private static List<Product> GenerateListOfProducts(int count)
 		{
 			var listofItems = new List<Product>();
 			for (int i = 0; i < count; i++)
@@ -159,7 +162,7 @@ namespace ConsoleApp1
 			return listofItems;
 		}
 
-		public static async Task GenerateImages(List<Element> orderedTemplate, Template template, List<Product> productBatch, int batchId, string directoryName)
+		public static async Task GenerateImages(List<Element> orderdTemplateElements, Template template, List<Product> productBatch, int batchId, string directoryName)
 		{
 			Console.WriteLine($"Generating images for batch {batchId} : {productBatch.Count()} products");
 
@@ -170,8 +173,18 @@ namespace ConsoleApp1
 					Console.WriteLine($"Batch:{batchId} - Product:{product.Name} - generating image");
 
 					await LayerProductImage(product.ImageUrl, canvas, template);
-					LayerImages(canvas, orderedTemplate);
-					LayerTexts( product, canvas, orderedTemplate);
+					foreach (var element in orderdTemplateElements)
+					{
+						if (element is ImageElement imageElement)
+						{
+							LayerImage(canvas, imageElement);
+						}
+
+						if (element is TextElement textElement)
+						{
+							LayerText(product, canvas, textElement);
+						}
+					}
 
 					canvas.Save($"{directoryName}/{product.Name}.jpeg");
 				}
@@ -194,65 +207,48 @@ namespace ConsoleApp1
 			canvas.Mutate(c => c.DrawImage(backgroundImage, 1));
 		}
 
-		private static void LayerImages(Image canvas, List<Element> imageElements)
+		private static void LayerImage(Image canvas, ImageElement imageElement)
 		{
 			var flipMode = FlipMode.None;
-			Parallel.ForEach(imageElements, (element) =>
+			if (imageElement.IsFlipped)
 			{
-				if (element is ImageElement imageElement)
-				{
+				flipMode = (FlipMode)imageElement.FlipMode;
+			}
 
-					if (imageElement.IsFlipped)
-					{
-						flipMode = (FlipMode)imageElement.FlipMode;
-					}
+			var image = DownloadImageFromUrl(imageElement.ImageUrl).Result;
+			image.Mutate(x => x.Resize(imageElement.Width, imageElement.Height)
+				.Opacity((float)(imageElement.Opacity))
+				.Rotate((float)imageElement.Degree)
+				.Flip(flipMode));
 
-					var image = DownloadImageFromUrl(imageElement.ImageUrl).Result;
-					image.Mutate(x => x.Resize(imageElement.Width, imageElement.Height)
-							.Opacity((float)(imageElement.Opacity))
-							.Rotate((float)imageElement.Degree)
-							.Flip(flipMode));
-
-					canvas.Mutate(ctx => ctx.DrawImage(image, new Point(element.X, element.Y), 1));
-				}
-			});
+			canvas.Mutate(ctx => ctx.DrawImage(image, new Point(imageElement.X, imageElement.Y), 1));
 		}
 
-		private static void LayerTexts(Product product, Image canvas, List<Element> textElements)
+		private static void LayerText(Product product, Image canvas, TextElement textElement)
 		{
 			var productJObject = JObject.FromObject(product);
 
-			foreach (var element in textElements)
+			var dynamicText = BuildDynamicText(productJObject, textElement.Text);
+
+			var textBackground = new Image<Rgba32>(textElement.Width, textElement.Height);
+			var font = GetFont(textElement);
+
+			var textGraphicsOptions = new TextGraphicsOptions()
 			{
-				if (element is TextElement textElement)
-				{
-					
-
-					var dynamicText = BuildDynamicText(productJObject, textElement.Text);
-
-					var textBackground = new Image<Rgba32>(textElement.Width, textElement.Height);
-					var font = GetFont(textElement);
-
-					var textGraphicsOptions = new TextGraphicsOptions()
-					{
-						TextOptions = {
+				TextOptions = {
 								WrapTextWidth = textElement.Width,
 								HorizontalAlignment = HorizontalAlignment.Center },
-						GraphicsOptions = { }
-					};
+				GraphicsOptions = { }
+			};
 
-					if (textElement.BackgroundColorRGBA != null)
-					{
-						textBackground.Mutate(a => a.Fill(Color.FromRgba(textElement.BCR, textElement.BCG, textElement.BCB, textElement.BCA)));
-					}
-					textBackground.Mutate(a => a.DrawText(textGraphicsOptions, dynamicText, font, Color.FromRgb(textElement.CR, textElement.CG, textElement.CB), new PointF(0, 0)));
-
-					canvas.Mutate(ctx => ctx.DrawImage(textBackground, new Point(textElement.X, textElement.Y), (float)textElement.Opacity)); 
-				}
+			if (textElement.BackgroundColorRGBA != null)
+			{
+				textBackground.Mutate(a => a.Fill(Color.FromRgba(textElement.BCR, textElement.BCG, textElement.BCB, textElement.BCA)));
 			}
-		}
+			textBackground.Mutate(a => a.DrawText(textGraphicsOptions, dynamicText, font, Color.FromRgb(textElement.CR, textElement.CG, textElement.CB), new PointF(0, 0)));
 
-		
+			canvas.Mutate(ctx => ctx.DrawImage(textBackground, new Point(textElement.X, textElement.Y), (float)textElement.Opacity));
+		}
 
 		private static string BuildDynamicText(JObject productJObject, string text)
 		{
