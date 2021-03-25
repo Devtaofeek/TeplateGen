@@ -13,12 +13,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Update="Resources\Fonts\Arial.ttf">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
-      <None Update="Resources\Fonts\Calibri.ttf">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
       <None Update="Resources\Fonts\Nunito.ttf">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
