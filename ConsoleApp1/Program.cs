@@ -97,7 +97,6 @@ namespace ConsoleApp1
 			templateElements.AddRange(template.TextElements);
 			templateElements.AddRange(template.ShapeElements);
 			return templateElements.OrderBy(e => e.Z_Index).ToList();
-
 		}
 
 		private static async Task GenerateTemplateImages(List<Product> products, List<Element> orderedTemplate, Template template, int maximimBatchCount, int minimumBatchSize)
@@ -113,7 +112,6 @@ namespace ConsoleApp1
 
 			var tasks = new List<Task>();
 			var batchsize = GetAppropriateBatchSize(products, maximimBatchCount, minimumBatchSize, totalItemCount);
-
 
 			var iteration = 0;
 			do
@@ -198,12 +196,12 @@ namespace ConsoleApp1
 			var backgroundImage = await DownloadImageFromUrl(productImageUrl);
 
 			backgroundImage.Mutate(x => x
-								.Resize(new ResizeOptions
-								{
-									Size = new Size(template.Width, template.Height),
-									Mode = ResizeMode.Pad,
-									Position = AnchorPositionMode.Center
-								}));
+				.Resize(new ResizeOptions
+				{
+					Size = new Size(template.Width, template.Height),
+					Mode = ResizeMode.Pad,
+					Position = AnchorPositionMode.Center
+				}));
 			canvas.Mutate(c => c.DrawImage(backgroundImage, 1));
 		}
 
@@ -214,7 +212,6 @@ namespace ConsoleApp1
 			{
 				flipMode = (FlipMode)imageElement.FlipMode;
 			}
-
 			var image = DownloadImageFromUrl(imageElement.ImageUrl).Result;
 			image.Mutate(x => x.Resize(imageElement.Width, imageElement.Height)
 				.Opacity((float)(imageElement.Opacity))
