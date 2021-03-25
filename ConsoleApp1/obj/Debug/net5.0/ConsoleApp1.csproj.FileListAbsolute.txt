@@ -43,3 +43,6 @@ C:\Users\taofeeal\RiderProjects\ConsoleApp1\ConsoleApp1\obj\Debug\net5.0\Console
 C:\Users\taofeeal\RiderProjects\ConsoleApp1\ConsoleApp1\bin\Debug\net5.0\Resources\Fonts\Nunito.ttf
 C:\Users\taofeeal\RiderProjects\ConsoleApp1\ConsoleApp1\bin\Debug\net5.0\Resources\Fonts\Poppins.ttf
 C:\Users\taofeeal\RiderProjects\ConsoleApp1\ConsoleApp1\bin\Debug\net5.0\Resources\Fonts\Roboto.ttf
+B:\Users\razva\source\repos\Filed\TeplateGen\ConsoleApp1\bin\Debug\net5.0\Resources\Fonts\Nunito.ttf
+B:\Users\razva\source\repos\Filed\TeplateGen\ConsoleApp1\bin\Debug\net5.0\Resources\Fonts\Poppins.ttf
+B:\Users\razva\source\repos\Filed\TeplateGen\ConsoleApp1\bin\Debug\net5.0\Resources\Fonts\Roboto.ttf
