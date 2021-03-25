@@ -12,4 +12,16 @@
       <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="1.0.0-beta11" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Update="Resources\Fonts\Nunito.ttf">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="Resources\Fonts\Poppins.ttf">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="Resources\Fonts\Roboto.ttf">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
 </Project>

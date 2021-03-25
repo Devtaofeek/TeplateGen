@@ -58,8 +58,8 @@ namespace ConsoleApp1
                     Y = 50,
                     ColorRGB = new List<byte>{255, 0, 0 },
                     BackgroundColorRBG = new List<byte>{200, 120, 120 },
-                    Font = "Arial",
-                    IsCustomFont = false,
+                    Font = "Roboto",
+                    IsCustomFont = true,
                     Text = @"{Name} is sold at {Price}{Currency}. IT has been the industry's standard dummy text ever since the 1500s,when an unknown printer took a of type and scrambled it to make a type specimen book"
                 },
                 new TextElement
@@ -72,13 +72,13 @@ namespace ConsoleApp1
                     IsItalic = false,
                     isUnderLine = true,
                     isBold = false,
-                    Opacity = 0.5M,
+                    Opacity = 1,
                     X = 150,
                     Y = 100,
                     ColorRGB = new List<byte>{255, 255, 255 },
                     BackgroundColorRBG = new List<byte>{0, 120, 120 },
-                    Font = "Calibri",
-                    IsCustomFont = false,
+                    Font = "Roboto",
+                    IsCustomFont = true,
                     Text = "{Name} is the best",
                 },
                 new TextElement
@@ -91,21 +91,20 @@ namespace ConsoleApp1
                     IsItalic = false,
                     isUnderLine = true,
                     isBold = false,
-                    Opacity = 0.5M,
+                    Opacity = 1,
                     X = 150,
                     Y = 100,
                     ColorRGB = new List<byte>{255, 255, 255 },
                     BackgroundColorRBG = new List<byte>{0, 234, 255 },
-                    Font = "Calibri",
-                    IsCustomFont = false,
+                    Font = "Roboto",
+                    IsCustomFont = true,
                     Text = "{Name} is the best",
                 }
             },
                 Height = 700,
                 Width = 700
             };
-
-          await  GenerateImage(template, product);
+            await GenerateImage(template, product);
         }
 
         public static async Task GenerateImage(Template template, Product product)
@@ -217,12 +216,12 @@ namespace ConsoleApp1
             if (item.IsCustomFont)
             {
                 // get the font from the DB, and apply it and return
-                FontCollection collection = new FontCollection();
-                collection.Install(Path.Combine("Resources", "Fonts", "Nunito.ttf"));
+                var fontCollection = LoadCustomFonts();
 
-                if (collection.TryFind(item.Font, out FontFamily fontFamily))
+                if (fontCollection.TryFind(item.Font, out FontFamily fontFamily))
                 {
-                    Font font = fontFamily.CreateFont(item.FontSize, fontStyle);
+                    var font = fontFamily.CreateFont(item.FontSize, fontStyle);
+
                     return font;
                 }
                 else
@@ -277,6 +276,14 @@ namespace ConsoleApp1
             var image = Image.Load(stream);
 
             return image;
+        }
+
+        private static FontCollection LoadCustomFonts()
+        {
+            var collection = new FontCollection();
+            collection.Install(Path.Combine("Resources", "Fonts", "Nunito.ttf"));
+            collection.Install(Path.Combine("Resources", "Fonts", "Roboto.ttf"));
+            return collection;
         }
     }
 }
