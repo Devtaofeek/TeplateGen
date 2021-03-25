@@ -6,7 +6,6 @@ using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -18,7 +17,7 @@ namespace ConsoleApp1
 	static class Program
 	{
 
-		private static HttpWebRequest webClient;
+		private static readonly HttpWebRequest webClient;
 
 		static async Task Main(string[] args)
 		{
@@ -32,7 +31,7 @@ namespace ConsoleApp1
 			};
 			// generate 4,5,7,49,50,56,150 products,
 			// the title of each product = his number in the list 1,2,3,4,5...10, print the product names from each batch ( to ensure batches are generated correctly)
-			var products = GenerateListOfItems(30);
+			var products = GenerateListOfItems(60);
 			var template = new Template
 			{
 				ImageElements = new List<ImageElement>()
@@ -90,28 +89,25 @@ namespace ConsoleApp1
 				Width = 700
 			};
 
-			await ProcessTemplateGenerationAsync(products, template, 10, 5);
+			await GenerateTemplateImages(products, template, 10, 5);
 			Console.ReadLine();
 		}
 
-		private static async Task ProcessTemplateGenerationAsync(List<Product> products, Template template, int maximimBatchCount, int minimumBatchSize)
+		private static async Task GenerateTemplateImages(List<Product> products, Template template, int maximimBatchCount, int minimumBatchSize)
 		{
-			
 			int totalItemCount = products.Count;
-
 			// use batchsize
-			var batchsize = GetAppropriateBatchSize(products, maximimBatchCount, minimumBatchSize, totalItemCount); 
-
+			var batchsize = GetAppropriateBatchSize(products, maximimBatchCount, minimumBatchSize, totalItemCount);
 			List<Task> tasks = new List<Task>();
 			var iteration = 0;
 			do
 			{
-				var batch = Batch(products, iteration, batchsize);//rename to getbatch
+				var batch = GetBatch(products, iteration, batchsize);
 				tasks.Add(Task.Factory.StartNew(() => GenerateImages(template, batch, Guid.NewGuid())));
 				iteration = iteration + 1;
-			} while (totalItemCount > (batchsize * iteration));
+			}
+			while (totalItemCount > (batchsize * iteration));
 
-			
 			await Task.WhenAll(tasks);
 		}
 
@@ -126,9 +122,9 @@ namespace ConsoleApp1
 			return appropriateBatchSize;
 		}
 
-	
 
-		private static List<Product> Batch(List<Product> products, int iteration, int appropriateBatchSize)
+
+		private static List<Product> GetBatch(List<Product> products, int iteration, int appropriateBatchSize)
 		{
 			return products.Skip(iteration * appropriateBatchSize).Take(appropriateBatchSize).ToList();
 		}
@@ -138,12 +134,12 @@ namespace ConsoleApp1
 			var listofItems = new List<Product>();
 			for (int i = 0; i < count; i++)
 			{
-				var createdProduct =  new Product
+				var createdProduct = new Product
 				{
 					Currency = "USD",
 					Name = i.ToString(),
 					Price = 50,
-					ImageUrl = "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=1280"
+					ImageUrl = i % 2 == 0 ? "https://picsum.photos/1200" : "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=1280"
 				};
 				listofItems.Add(createdProduct);
 			}
@@ -156,24 +152,23 @@ namespace ConsoleApp1
 			Console.WriteLine($"Batch {BatchId} ---- Generating Images");
 			System.IO.Directory.CreateDirectory("output");
 
-			Parallel.For(0, productBatch.Count, i =>
+			Parallel.For(0, productBatch.Count, async (i) =>
 			{
 				using (Image canvas = new Image<Rgba32>(template.Width, template.Height))
 				{
-					LayerProductImage(productBatch[i].ImageUrl, canvas, template);
+					await LayerProductImage(productBatch[i].ImageUrl, canvas, template);
 
 					LayerImages(canvas, template);
 
 					LayerTexts(template, productBatch[i], canvas);
 
-
-					Console.WriteLine($"Batch {BatchId} ----- with product - {productBatch[i].Name} saving generated");
+					Console.WriteLine($"Batch {BatchId} ----- with product - {productBatch[i].Name} saving generated image");
 					canvas.Save($"output/{productBatch[i].Name}.png");
 				}
 
 			});
-		
-			Console.WriteLine($"Batch {BatchId} ----- done!");
+
+			Console.WriteLine($"Batch {BatchId} ----- Completed Batch!");
 		}
 
 		private static async Task LayerProductImage(string productImageUrl, Image canvas, Template template)
@@ -274,11 +269,11 @@ namespace ConsoleApp1
 			// we will use something similar to this in the final code
 			using (var client = new HttpClient())
 			{
-				
+
 				var response = await client.GetAsync(imageUrl);
 				if (response.IsSuccessStatusCode)
 				{
-					return Image.Load(await response.Content.ReadAsStreamAsync());
+					return Image.Load(await response.Content.ReadAsStreamAsync().ConfigureAwait(true));
 				}
 				else
 				{
@@ -287,16 +282,7 @@ namespace ConsoleApp1
 				}
 			}
 
-			//webClient = (HttpWebRequest)HttpWebRequest.Create(imageUrl);
-			//webClient.AllowWriteStreamBuffering = true;
-			//webClient.AllowReadStreamBuffering = true;
-			//webClient.Timeout = 100000;
 
-			//var webResponse = webClient.GetResponse();
-			//var stream = webResponse.GetResponseStream();
-			//var image = Image.Load(stream);
-
-			//return image;
 		}
 	}
 }
